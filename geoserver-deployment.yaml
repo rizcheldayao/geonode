@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+    org.geonode.component: geoserver
+    org.geonode.instance.name: geonode
+  creationTimestamp: null
+  labels:
+    io.kompose.service: geoserver
+  name: geoserver
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: geoserver
+    spec:
+      containers:
+      - env:
+        - name: DOCKERHOST
+        - name: DOCKER_HOST_IP
+        - name: GEONODE_LB_HOST_IP
+        - name: GEONODE_LB_PORT
+        - name: PUBLIC_PORT
+          value: "80"
+        image: geonode/geoserver:latest
+        name: geoserver4geonode
+        resources: {}
+        stdin: true
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: geoserver-claim0
+        - mountPath: /geoserver-data/data
+          name: geonode-geoserver-data-dir
+      restartPolicy: Always
+      volumes:
+      - name: geoserver-claim0
+        persistentVolumeClaim:
+          claimName: geoserver-claim0
+      - name: geonode-geoserver-data-dir
+        persistentVolumeClaim:
+          claimName: geonode-geoserver-data-dir
+status: {}

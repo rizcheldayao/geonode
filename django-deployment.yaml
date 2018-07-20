@@ -1,0 +1,127 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+    org.geonode.component: django
+    org.geonode.instance.name: geonode
+  creationTimestamp: null
+  labels:
+    io.kompose.service: django
+  name: django
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: django
+    spec:
+      containers:
+      - args:
+        - uwsgi
+        - --ini
+        - uwsgi.ini
+        env:
+        - name: ALLOWED_HOSTS
+          value: '[''localhost'', ''django'', ''geonode'']'
+        - name: ASYNC_SIGNALS
+          value: "False"
+        - name: BROKER_URL
+          value: amqp://guest:guest@rabbitmq:5672
+        - name: COMPOSE_HTTP_TIMEOUT
+          value: "300"
+        - name: C_FORCE_ROOT
+          value: "1"
+        - name: DATABASE_URL
+          value: postgres://postgres:postgres@db:5432/geonode
+        - name: DEFAULT_BACKEND_DATASTORE
+          value: datastore
+        - name: DEFAULT_BACKEND_UPLOADER
+          value: geonode.importer
+        - name: DJANGO_SETTINGS_MODULE
+          value: geonode.settings
+        - name: DOCKER_API_VERSION
+          value: ' "1.24"'
+        - name: DOCKER_ENV
+          value: production
+        - name: GEOGIG_ENABLED
+          value: "False"
+        - name: GEONODE_DATABASE
+          value: geonode
+        - name: GEONODE_DATABASE_PASSWORD
+          value: geonode
+        - name: GEONODE_GEODATABASE
+          value: geonode_data
+        - name: GEONODE_GEODATABASE_PASSWORD
+          value: geonode_data
+        - name: GEONODE_INSTANCE_NAME
+          value: geonode
+        - name: GEONODE_LB_HOST_IP
+          # value: 10.176.239.166
+        - name: GEONODE_LB_PORT
+          # value: 30080
+        - name: GEOSERVER_LOCATION
+          value: http://geonode/geoserver/
+        - name: GEOSERVER_PUBLIC_LOCATION
+          value: http://geonode/geoserver/
+        - name: IS_CELERY
+          value: "False"
+        - name: MOSAIC_ENABLED
+          value: "False"
+        - name: SITEURL
+          value: http://geonode/
+        - name: TIME_ENABLED
+          value: "True"
+        - name: UWSGI_CMD
+          value: uwsgi --ini /usr/src/app/uwsgi.ini
+        image: geonode/geonode:latest
+        name: django4geonode
+        resources: {}
+        stdin: true
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: django-claim0
+        - mountPath: /geoserver-data/data
+          name: geonode-geoserver-data-dir
+      restartPolicy: Always
+      volumes:
+      - name: django-claim0
+        persistentVolumeClaim:
+          claimName: django-claim0
+      - name: geonode-geoserver-data-dir
+        persistentVolumeClaim:
+          claimName: geonode-geoserver-data-dir
+status: {}
+# ---
+# kind: PersistentVolume
+# apiVersion: v1
+# metadata:
+#   name: django-claim0
+#   labels:
+#     type: local
+# spec:
+#   capacity:
+#     storage: 100Mi
+#   accessModes:
+#     - ReadWriteOnce
+#   hostPath:
+#     path: "/tmp/django-claim0"
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     io.kompose.service: django-claim0
+#   name: django-claim0
+# spec:
+#   accessModes:
+#   - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 100Mi
+# status: {}

@@ -1,0 +1,108 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+    org.geonode.component: db
+    org.geonode.instance.name: geonode
+  creationTimestamp: null
+  labels:
+    io.kompose.service: db
+  name: db
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: db
+    spec:
+      containers:
+      - env:
+        - name: GEONODE_DATABASE
+          value: geonode
+        - name: GEONODE_DATABASE_PASSWORD
+          value: geonode
+        - name: GEONODE_GEODATABASE
+          value: geonode_data
+        - name: GEONODE_GEODATABASE_PASSWORD
+          value: geonode_data
+        image: geonode/postgis:9.6
+        name: db4geonode
+        resources: {}
+        stdin: true
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: geonode-dbdata
+        - mountPath: /pg-backups
+          name: geonode-dbbackups
+      restartPolicy: Always
+      volumes:
+      - name: geonode-dbdata
+        persistentVolumeClaim:
+          claimName: geonode-dbdata
+      - name: geonode-dbbackups
+        persistentVolumeClaim:
+          claimName: geonode-dbbackups
+status: {}
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: geonode-dbdata
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/dbdata"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: geonode-dbdata
+  name: geonode-dbdata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: geonode-dbbackups
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/dbbackups"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: geonode-dbbackups
+  name: geonode-dbbackups
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}

@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+    org.geonode.component: nginx
+    org.geonode.instance.name: geonode
+  creationTimestamp: null
+  labels:
+    io.kompose.service: geonode
+  name: geonode
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: geonode
+    spec:
+      containers:
+      - image: geonode/nginx:geoserver
+        name: nginx4geonode
+        ports:
+        - containerPort: 80
+        resources: {}
+        stdin: true
+      restartPolicy: Always
+status: {}
